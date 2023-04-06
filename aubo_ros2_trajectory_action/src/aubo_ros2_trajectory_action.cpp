@@ -25,6 +25,15 @@ JointTrajectoryAction::JointTrajectoryAction(std::string controller_name):Node("
     std::bind(&JointTrajectoryAction::handleCancel, this, _1),
     std::bind(&JointTrajectoryAction::handleAccept, this, _1));
 
+  this->declare_parameter<std::vector<std::string>>("joint_name.controller_joint_names", joint_names);
+
+  this->get_parameter("joint_name.controller_joint_names", joint_names);
+
+  for (int i = 0; i < 6; i++)
+  {
+    RCLCPP_INFO(this->get_logger(), "joint name %d %s", i, joint_names[i].c_str());
+  }
+
   moveit_controller_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectoryPoint>("/aubo_robot/moveit_controller", 2000);
   fjt_feedback_sub_ = this->create_subscription<control_msgs::action::FollowJointTrajectory_Feedback>(
     "/aubo_robot/fjt_feedback", 10, std::bind(&JointTrajectoryAction::fjtFeedbackCallback, this, _1));
@@ -216,20 +225,22 @@ bool JointTrajectoryAction::checkReachTarget(const control_msgs::action::FollowJ
 
 trajectory_msgs::msg::JointTrajectory JointTrajectoryAction::remapTrajectoryByJointName(trajectory_msgs::msg::JointTrajectory &trajectory)
 {
-  std::string joint_name_[6] = {"shoulder_joint","upperArm_joint","foreArm_joint","wrist1_joint","wrist2_joint","wrist3_joint"};
   std::vector<int> mapping;
 
   mapping.resize(6, 6);
 	for (uint16_t i = 0; i < trajectory.joint_names.size(); i++) {
 		for (int j = 0; j < 6; j++) {
-			if (trajectory.joint_names[i] == joint_name_[j])
+			if (trajectory.joint_names[i] == joint_names[j])
 				mapping[j] = i;
 		}
 	}
 
+  for(int i = 0; i < 6; i++)
+    RCLCPP_INFO(this->get_logger(), "order %d", mapping[i]);
+
   trajectory_msgs::msg::JointTrajectory new_traj;
   for (int i = 0; i < 6; i++)
-    new_traj.joint_names.push_back(joint_name_[i]);
+    new_traj.joint_names.push_back(joint_names[i]);
 
   for (uint16_t i = 0; i < trajectory.points.size(); i++)
   {

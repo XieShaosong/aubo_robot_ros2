@@ -22,6 +22,8 @@ AuboRos2Driver::AuboRos2Driver():Node("aubo_ros2_driver")
   controller_connected_flag_ = false;
   real_robot_exist_ = false;
 
+  this->declare_parameter<std::string>("robot_ip", "127.0.0.1");
+
   tcp_.toolInEndOrientation.w = 1;
   tcp_.toolInEndOrientation.x = 0;
   tcp_.toolInEndOrientation.y = 0;

@@ -39,7 +39,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "robot_ip",
-            default_value= "192.168.29.2",
+            default_value= "192.168.1.2",
             description="IP address of the robot server (remote).",
         )
     )
@@ -120,6 +120,12 @@ def generate_launch_description():
         )
     }
 
+    joint_names_yaml = {
+        "joint_name" : load_yaml(
+          "aubo_ros2_moveit_config", "config/joint_names.yaml"
+        )
+    }
+
     # Start the actual move_group node/action server
     move_group_node = Node(
         package="moveit_ros_move_group",
@@ -134,6 +140,7 @@ def generate_launch_description():
             moveit_controllers,
             planning_scene_monitor_parameters,
             joint_limits_yaml,
+            joint_names_yaml,
         ],
     )
 
@@ -163,6 +170,7 @@ def generate_launch_description():
         package="aubo_ros2_trajectory_action",
         executable="aubo_ros2_trajectory_action",
         output="screen",
+        parameters=[joint_names_yaml],
     )
 
     #aubo ros2 driver
@@ -170,6 +178,7 @@ def generate_launch_description():
         package="aubo_ros2_driver",
         executable="aubo_ros2_driver",
         output="screen",
+        parameters=[{"robot_ip": robot_ip}],
     )
 
     # Publish TF

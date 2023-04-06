@@ -21,7 +21,17 @@ bool AuboRos2Driver::connectArmController()
   int ret1 = aubo_robot_namespace::InterfaceCallSuccCode;
   int ret2 = aubo_robot_namespace::InterfaceCallSuccCode;
 
-  string server_host = "192.168.29.2";
+  string server_host;
+
+  if (this->get_parameter("robot_ip", server_host))
+  {
+    RCLCPP_INFO(this->get_logger(), "robot ip: %s", server_host.c_str());
+  }
+  else
+  {
+    RCLCPP_INFO(this->get_logger(), "robot ip: %s", server_host.c_str());
+    server_host = "192.168.29.2";
+  }
 
   //log in
   int max_link_times = 5;

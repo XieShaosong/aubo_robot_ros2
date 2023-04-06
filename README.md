@@ -74,5 +74,5 @@ You can also run the MoveIt example and use the `MotionPlanning` plugin in RViZ 
 
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/aubo_ros2_ws/install/aubo_ros2_driver/lib/aubo_ros2_driver/aubocontroller
-ros2 launch aubo_ros2_moveit_config aubo_moveit.launch.py
+ros2 launch aubo_ros2_moveit_config aubo_moveit.launch.py robot_ip:=[robot ip]
 ```
