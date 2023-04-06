@@ -1,0 +1,16 @@
+joint_state_publisher:
+    ros__parameters:
+        joints:
+            - shoulder_joint
+            - upperArm_joint
+            - foreArm_joint
+            - wrist1_joint
+            - wrist2_joint
+            - wrist3_joint
+        joint_positions:
+            - 0.0
+            - 0.0
+            - 1.57
+            - 0.0
+            - 0.0
+            - 0.0

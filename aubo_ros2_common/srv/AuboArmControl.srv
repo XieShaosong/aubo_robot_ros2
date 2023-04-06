@@ -1,0 +1,11 @@
+string cmd
+string type
+geometry_msgs/Pose tcp
+float64 payload
+int16 collision_level
+float64[] joints
+float64[] velocities
+float64[] accelerations
+---
+bool result
+string result_code

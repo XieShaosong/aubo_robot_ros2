@@ -1,0 +1,10 @@
+int16 control_option
+int16 collision_level
+bool arm_power_status
+bool collision_stopped
+bool emergency_stopped
+bool singularity_stopped
+bool protective_stopped
+bool reached_target
+bool is_timeout
+bool in_motion
