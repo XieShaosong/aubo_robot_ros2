@@ -1,3 +1,6 @@
+#ifndef THREAD_SAFE_QUEUE_H_
+#define THREAD_SAFE_QUEUE_H_
+
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -54,3 +57,5 @@ private:
   std::mutex mutex_;
   std::condition_variable cond_;
 };
+
+#endif

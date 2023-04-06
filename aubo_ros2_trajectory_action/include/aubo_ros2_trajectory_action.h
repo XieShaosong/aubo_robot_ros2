@@ -1,3 +1,6 @@
+#ifndef AUBO_JOINT_TRAJECTORY_ACTION_H
+#define AUBO_JOINT_TRAJECTORY_ACTION_H
+
 #include <memory>
 #include <queue>
 #include <thread>
@@ -51,3 +54,5 @@ private:
 };
 
 }
+
+#endif

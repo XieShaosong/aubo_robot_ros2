@@ -1,3 +1,6 @@
+#ifndef AUBO_ROS2_METATYPE_H_
+#define AUBO_ROS2_METATYPE_H_
+
 #include "AuboRobotMetaType.h"
 #include "math.h"
 
@@ -57,3 +60,5 @@ namespace aubo_ros2_driver
     aubo_robot_namespace::RobotErrorCode code_;
   };
 }
+
+#endif

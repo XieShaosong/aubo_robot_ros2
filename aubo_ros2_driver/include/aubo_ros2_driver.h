@@ -1,3 +1,6 @@
+#ifndef AUBO_DRIVER_H_
+#define AUBO_DRIVER_H_
+
 #include <string>
 #include <thread>
 
@@ -95,3 +98,5 @@ private:
 };
 
 }
+
+#endif
