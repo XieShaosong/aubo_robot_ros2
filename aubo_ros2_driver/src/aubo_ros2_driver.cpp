@@ -43,6 +43,9 @@ AuboRos2Driver::AuboRos2Driver():Node("aubo_ros2_driver")
   moveit_controller_sub_ = this->create_subscription<trajectory_msgs::msg::JointTrajectoryPoint>(
     "/aubo_robot/moveit_controller", 2000, std::bind(&AuboRos2Driver::moveitControllerCallback, this, _1));
 
+  robot_control_sub_ = this->create_subscription<std_msgs::msg::String>(
+    "/aubo_robot/robot_control", 10, std::bind(&AuboRos2Driver::robotControlCallback, this, _1));
+
   arm_control_srv_ = this->create_service<aubo_ros2_common::srv::AuboArmControl>("/aubo_robot/arm_control", std::bind(&AuboRos2Driver::armControlServiceCallback, this, _1, _2));
 
   states_pub_timer_ = create_wall_timer(5ms, std::bind(&AuboRos2Driver::intervalStatesCallback, this));
@@ -180,6 +183,44 @@ void AuboRos2Driver::intervalStatesCallback()
       joint_feedback.actual.positions.push_back(robot_state_.joint_status_[i].jointPosJ);
     }
     fjt_feedback_pub_->publish(joint_feedback);
+  }
+}
+
+void AuboRos2Driver::robotControlCallback(const std_msgs::msg::String::ConstSharedPtr msg)
+{
+  RCLCPP_INFO(this->get_logger(), "receive cmd: %s", msg->data.c_str());
+  int ret = aubo_robot_namespace::InterfaceCallSuccCode;
+
+  if (msg->data == "powerOn")
+  {
+    int collision_level = 7;
+    aubo_robot_namespace::ToolDynamicsParam toolDynamicsParam;
+    toolDynamicsParam.positionX = 0.0;
+    toolDynamicsParam.positionY = 0.0;
+    toolDynamicsParam.positionZ = 0.0;
+    toolDynamicsParam.payload = 1.0;
+
+    aubo_robot_namespace::ROBOT_SERVICE_STATE result;
+    ret = robot_send_service_.rootServiceRobotStartup(toolDynamicsParam /**工具动力学参数**/,
+                                                      collision_level /*碰撞等级*/,
+                                                      true /*是否允许读取位姿　默认为true*/,
+                                                      true,    /*保留默认为true */
+                                                      1000,    /*保留默认为1000 */
+                                                      result); /*机械臂初始化*/
+
+    if (ret == aubo_robot_namespace::InterfaceCallSuccCode)
+      RCLCPP_INFO(this->get_logger(), "powerOn success.");
+    else
+      RCLCPP_INFO(this->get_logger(), "powerOn failed.");
+  }
+  else if (msg->data == "powerOff")
+  {
+    ret = robot_send_service_.robotServiceRobotShutdown(true);
+
+    if (ret == aubo_robot_namespace::InterfaceCallSuccCode)
+      RCLCPP_INFO(this->get_logger(), "powerOff success.");
+    else
+      RCLCPP_INFO(this->get_logger(), "powerOff failed.");
   }
 }
 

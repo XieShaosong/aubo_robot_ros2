@@ -74,6 +74,7 @@ private:
   rclcpp::Publisher<control_msgs::action::FollowJointTrajectory_Feedback>::SharedPtr fjt_feedback_pub_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr moveit_execution_pub_;
 
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_control_sub_;
   rclcpp::Subscription<trajectory_msgs::msg::JointTrajectoryPoint>::SharedPtr moveit_controller_sub_;
 
   rclcpp::Service<aubo_ros2_common::srv::AuboArmControl>::SharedPtr arm_control_srv_;
@@ -84,6 +85,8 @@ private:
                                  std::shared_ptr<aubo_ros2_common::srv::AuboArmControl::Response> response);
 
   void moveitControllerCallback(const trajectory_msgs::msg::JointTrajectoryPoint::ConstSharedPtr msg);
+
+  void robotControlCallback(const std_msgs::msg::String::ConstSharedPtr msg);
 
 private:
   ServiceInterface robot_send_service_;
