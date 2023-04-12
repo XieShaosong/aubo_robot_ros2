@@ -46,11 +46,13 @@ void JointTrajectoryAction::fjtFeedbackCallback(const control_msgs::action::Foll
   if (!has_active_goal_ || current_trajectory_.points.empty())
     return;
 
+  active_goal_->publish_feedback(std::const_pointer_cast<control_msgs::action::FollowJointTrajectory_Feedback>(msg));
   if (checkReachTarget(msg, current_trajectory_))
   {
     RCLCPP_INFO(this->get_logger(), "reach target");
     auto result = std::make_shared<FollowJointTrajectory::Result>();
-    result->SUCCESSFUL;
+    result->error_code = result->SUCCESSFUL;
+    result->error_string = "successful";
     active_goal_->succeed(result);
     has_active_goal_ = false; 
   }
@@ -73,7 +75,13 @@ rclcpp_action::GoalResponse JointTrajectoryAction::handleGoal(const rclcpp_actio
 
   if (goal->trajectory.points.empty())
   {
-    RCLCPP_INFO(this->get_logger(), "Joint trajectory action failed on empty trajectory");
+    RCLCPP_INFO(this->get_logger(), "empty trajectory");
+    return rclcpp_action::GoalResponse::REJECT;
+  }
+
+  if(!isSimilar(joint_names, goal->trajectory.joint_names))
+  {
+    RCLCPP_INFO(this->get_logger(), "invalid joints");
     return rclcpp_action::GoalResponse::REJECT;
   }
 
@@ -98,6 +106,7 @@ rclcpp_action::CancelResponse JointTrajectoryAction::handleCancel(const std::sha
 
 void JointTrajectoryAction::handleAccept(const std::shared_ptr<GoalHandleFjt> goal_handle)
 {
+  RCLCPP_INFO(this->get_logger(), "accepted new goal");
   active_goal_ = std::move(goal_handle);
   current_trajectory_ = goal_handle->get_goal()->trajectory;
   has_active_goal_ = true;
@@ -196,8 +205,18 @@ void JointTrajectoryAction::calculateMotionTrajectory()
       moveit_controller_pub_->publish(current_goal_point);
   }
 
-
   RCLCPP_INFO(this->get_logger(), "send trajectory %ld trajectory point finished", plan_motion_buffer.size());
+}
+
+bool JointTrajectoryAction::isSimilar(std::vector<std::string> lhs, std::vector<std::string> rhs)
+{
+  if (lhs.size() != rhs.size())
+    return false;
+
+  std::sort(lhs.begin(), lhs.end());
+  std::sort(rhs.begin(), rhs.end());
+
+  return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
 double JointTrajectoryAction::toSec(const builtin_interfaces::msg::Duration &duration)

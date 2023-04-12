@@ -62,6 +62,8 @@ private:
   void calculateMotionTrajectory();
   double toSec(const builtin_interfaces::msg::Duration &duration);
 
+  bool isSimilar(std::vector<std::string> lhs, std::vector<std::string> rhs);
+
   trajectory_msgs::msg::JointTrajectory remapTrajectoryByJointName(trajectory_msgs::msg::JointTrajectory &trajectory);
 
   bool checkReachTarget(const control_msgs::action::FollowJointTrajectory_Feedback::ConstSharedPtr feedback, const trajectory_msgs::msg::JointTrajectory &traj);
