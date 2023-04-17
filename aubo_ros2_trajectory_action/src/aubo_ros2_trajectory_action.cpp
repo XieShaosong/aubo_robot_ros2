@@ -37,7 +37,7 @@ JointTrajectoryAction::JointTrajectoryAction(std::string controller_name):Node("
     RCLCPP_INFO(this->get_logger(), "joint name %d %s", i, joint_names[i].c_str());
   }
 
-  moveit_controller_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectoryPoint>("/aubo_robot/moveit_controller", 2000);
+  moveit_controller_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectoryPoint>("/aubo_robot/moveit_controller", 5000);
   fjt_feedback_sub_ = this->create_subscription<control_msgs::action::FollowJointTrajectory_Feedback>(
     "/aubo_robot/fjt_feedback", 10, std::bind(&JointTrajectoryAction::fjtFeedbackCallback, this, _1));
   moveit_execution_sub_ = this->create_subscription<std_msgs::msg::String>(
