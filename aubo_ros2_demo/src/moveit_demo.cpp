@@ -54,9 +54,9 @@ public:
     std::vector<double> zero_position;
     zero_position.push_back(M_PI*(0.0)/180.0);
     zero_position.push_back(M_PI*(0.0)/180.0);
-    zero_position.push_back(M_PI*(90.0)/180.0);
+    zero_position.push_back(M_PI*(-90.0)/180.0);
     zero_position.push_back(M_PI*(0.0)/180.0);
-    zero_position.push_back(M_PI*(90.0)/180.0);
+    zero_position.push_back(M_PI*(-90.0)/180.0);
     zero_position.push_back(M_PI*(0.0)/180.0);
     move_group.setJointValueTarget(zero_position);
     move_group.setPlannerId("RRTConnect");

@@ -41,14 +41,14 @@ AuboRos2Driver::AuboRos2Driver():Node("aubo_ros2_driver")
   moveit_execution_pub_ = this->create_publisher<std_msgs::msg::String>("/aubo_robot/moveit_execution", 10);
 
   moveit_controller_sub_ = this->create_subscription<trajectory_msgs::msg::JointTrajectoryPoint>(
-    "/aubo_robot/moveit_controller", 2000, std::bind(&AuboRos2Driver::moveitControllerCallback, this, _1));
+    "/aubo_robot/moveit_controller", 5000, std::bind(&AuboRos2Driver::moveitControllerCallback, this, _1));
 
   robot_control_sub_ = this->create_subscription<std_msgs::msg::String>(
     "/aubo_robot/robot_control", 10, std::bind(&AuboRos2Driver::robotControlCallback, this, _1));
 
   arm_control_srv_ = this->create_service<aubo_ros2_common::srv::AuboArmControl>("/aubo_robot/arm_control", std::bind(&AuboRos2Driver::armControlServiceCallback, this, _1, _2));
 
-  states_pub_timer_ = create_wall_timer(5ms, std::bind(&AuboRos2Driver::intervalStatesCallback, this));
+  states_pub_timer_ = create_wall_timer(100ms, std::bind(&AuboRos2Driver::intervalStatesCallback, this));
 }
 
 bool AuboRos2Driver::start()
