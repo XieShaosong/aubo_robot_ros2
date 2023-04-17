@@ -18,6 +18,9 @@ using namespace aubo_ros2_trajectory_action;
 
 JointTrajectoryAction::JointTrajectoryAction(std::string controller_name):Node("aubo_ros2_trajectory_action")
 {
+  has_active_goal_ = false;
+  trajectory_state_recvd_ = false;
+
   using namespace std::placeholders;
   this->action_server_ = rclcpp_action::create_server<FollowJointTrajectory>(
     this, controller_name,
@@ -39,6 +42,20 @@ JointTrajectoryAction::JointTrajectoryAction(std::string controller_name):Node("
     "/aubo_robot/fjt_feedback", 10, std::bind(&JointTrajectoryAction::fjtFeedbackCallback, this, _1));
   moveit_execution_sub_ = this->create_subscription<std_msgs::msg::String>(
     "/aubo_robot/moveit_execution", 10, std::bind(&JointTrajectoryAction::moveitExecutionCallback, this, _1));
+
+  watch_dog_timer_ = create_wall_timer(std::chrono::seconds(2), std::bind(&JointTrajectoryAction::watchDogTimer, this));
+}
+
+void JointTrajectoryAction::watchDogTimer()
+{
+  if (has_active_goal_)
+  {
+    if (!trajectory_state_recvd_)
+    {
+      RCLCPP_INFO(this->get_logger(), "abort active goal because driver no feedback");
+      abortActiveGoal();
+    }
+  }
 }
 
 void JointTrajectoryAction::fjtFeedbackCallback(const control_msgs::action::FollowJointTrajectory_Feedback::ConstSharedPtr msg)
@@ -46,13 +63,17 @@ void JointTrajectoryAction::fjtFeedbackCallback(const control_msgs::action::Foll
   if (!has_active_goal_ || current_trajectory_.points.empty())
     return;
 
+  trajectory_state_recvd_ = true;
+  active_goal_->publish_feedback(std::const_pointer_cast<control_msgs::action::FollowJointTrajectory_Feedback>(msg));
   if (checkReachTarget(msg, current_trajectory_))
   {
     RCLCPP_INFO(this->get_logger(), "reach target");
     auto result = std::make_shared<FollowJointTrajectory::Result>();
-    result->SUCCESSFUL;
+    result->error_code = result->SUCCESSFUL;
+    result->error_string = "successful";
     active_goal_->succeed(result);
-    has_active_goal_ = false; 
+    has_active_goal_ = false;
+    trajectory_state_recvd_ = false;
   }
 }
 
@@ -73,7 +94,13 @@ rclcpp_action::GoalResponse JointTrajectoryAction::handleGoal(const rclcpp_actio
 
   if (goal->trajectory.points.empty())
   {
-    RCLCPP_INFO(this->get_logger(), "Joint trajectory action failed on empty trajectory");
+    RCLCPP_INFO(this->get_logger(), "empty trajectory");
+    return rclcpp_action::GoalResponse::REJECT;
+  }
+
+  if(!isSimilar(joint_names, goal->trajectory.joint_names))
+  {
+    RCLCPP_INFO(this->get_logger(), "invalid joints");
     return rclcpp_action::GoalResponse::REJECT;
   }
 
@@ -92,12 +119,18 @@ rclcpp_action::CancelResponse JointTrajectoryAction::handleCancel(const std::sha
 {
   RCLCPP_INFO(this->get_logger(), "cancel goal");
 
+  auto result = std::make_shared<FollowJointTrajectory::Result>();
+  result->error_string = "aborted";
+  active_goal_->abort(result);
   has_active_goal_ = false;
+  trajectory_state_recvd_ = false;
+
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void JointTrajectoryAction::handleAccept(const std::shared_ptr<GoalHandleFjt> goal_handle)
 {
+  RCLCPP_INFO(this->get_logger(), "accepted new goal");
   active_goal_ = std::move(goal_handle);
   current_trajectory_ = goal_handle->get_goal()->trajectory;
   has_active_goal_ = true;
@@ -115,6 +148,7 @@ void JointTrajectoryAction::abortActiveGoal()
   result->error_string = "aborted";
   active_goal_->abort(result);
   has_active_goal_ = false;
+  trajectory_state_recvd_ = false;
 }
 
 void JointTrajectoryAction::calculateMotionTrajectory()
@@ -196,8 +230,18 @@ void JointTrajectoryAction::calculateMotionTrajectory()
       moveit_controller_pub_->publish(current_goal_point);
   }
 
-
   RCLCPP_INFO(this->get_logger(), "send trajectory %ld trajectory point finished", plan_motion_buffer.size());
+}
+
+bool JointTrajectoryAction::isSimilar(std::vector<std::string> lhs, std::vector<std::string> rhs)
+{
+  if (lhs.size() != rhs.size())
+    return false;
+
+  std::sort(lhs.begin(), lhs.end());
+  std::sort(rhs.begin(), rhs.end());
+
+  return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
 double JointTrajectoryAction::toSec(const builtin_interfaces::msg::Duration &duration)

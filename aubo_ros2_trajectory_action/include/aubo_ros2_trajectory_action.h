@@ -46,9 +46,14 @@ private:
   rclcpp::Subscription<control_msgs::action::FollowJointTrajectory_Feedback>::SharedPtr fjt_feedback_sub_;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr moveit_execution_sub_;
 
+  rclcpp::TimerBase::SharedPtr watch_dog_timer_;
+
   bool has_active_goal_;
+  bool trajectory_state_recvd_;
   trajectory_msgs::msg::JointTrajectory current_trajectory_;
   std::shared_ptr<GoalHandleFjt> active_goal_;
+
+  void watchDogTimer();
 
   void fjtFeedbackCallback(const control_msgs::action::FollowJointTrajectory_Feedback::ConstSharedPtr msg);
   void moveitExecutionCallback(const std_msgs::msg::String::ConstSharedPtr msg);
@@ -61,6 +66,8 @@ private:
 
   void calculateMotionTrajectory();
   double toSec(const builtin_interfaces::msg::Duration &duration);
+
+  bool isSimilar(std::vector<std::string> lhs, std::vector<std::string> rhs);
 
   trajectory_msgs::msg::JointTrajectory remapTrajectoryByJointName(trajectory_msgs::msg::JointTrajectory &trajectory);
 

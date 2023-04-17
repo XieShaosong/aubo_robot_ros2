@@ -77,3 +77,8 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/aubo_ros2_ws/install/aubo_ros2_driver/
 ros2 launch aubo_ros2_moveit_config aubo_moveit.launch.py robot_ip:=[robot ip]
 ros2 topic pub --once /aubo_robot/robot_control std_msgs/msg/String 'data: powerOn'
 ```
+
+Test sim:
+```bash
+ros2 launch  aubo_ros2_moveit_config aubo_moveit_sim.launch.py
+```

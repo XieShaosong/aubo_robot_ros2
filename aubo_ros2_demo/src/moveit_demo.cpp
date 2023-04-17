@@ -68,13 +68,50 @@ public:
     control_msgs::action::FollowJointTrajectory_Goal goal;
     goal.trajectory = trajectory;
 
+    auto send_goal_options = rclcpp_action::Client<control_msgs::action::FollowJointTrajectory>::SendGoalOptions();
+    send_goal_options.goal_response_callback = std::bind(&DemoActionClient::goal_response_callback, this, std::placeholders::_1);
+    send_goal_options.feedback_callback = std::bind(&DemoActionClient::feedback_callback, this, std::placeholders::_1, std::placeholders::_2);
+    send_goal_options.result_callback = std::bind(&DemoActionClient::result_callback, this, std::placeholders::_1);
+
     client_ptr_->wait_for_action_server();
-    client_ptr_->async_send_goal(goal);
+    auto goal_handle_future_ = client_ptr_->async_send_goal(goal, send_goal_options);
+
+    auto future_result = client_ptr_->async_get_result(goal_handle_future_.get(), std::bind(&DemoActionClient::result_callback, this, std::placeholders::_1));
+    auto wait_result = future_result.wait_for(std::chrono::seconds(30));
+    if (std::future_status::timeout == wait_result)
+    {
+      RCLCPP_ERROR(node_->get_logger(), "goal timeout");
+    }
+    else
+      RCLCPP_ERROR(node_->get_logger(), "goal success");
   }
 
 private:
   rclcpp::Node::SharedPtr node_;
   rclcpp_action::Client<FollowJointTrajectory>::SharedPtr client_ptr_;
+
+  void goal_response_callback(std::shared_future<GoalHandleFjt::SharedPtr> future)
+  {
+    auto goal_handle = future.get();
+    if (!goal_handle)
+    {
+      RCLCPP_ERROR(node_->get_logger(), "goal was rejected by server");
+    }
+    else
+    {
+      RCLCPP_INFO(node_->get_logger(), "goal accepted by server, waiting for result");
+    }
+  }
+
+  void feedback_callback(GoalHandleFjt::SharedPtr goal_handle, const std::shared_ptr<const FollowJointTrajectory::Feedback> feedback)
+  {
+    RCLCPP_INFO(node_->get_logger(), "received: %f", feedback->actual.positions[0]);
+  }
+
+  void result_callback(const GoalHandleFjt::WrappedResult result)
+  {
+    RCLCPP_INFO(node_->get_logger(), "result: %d, %s", result.result.get()->error_code, result.result.get()->error_string.c_str());
+  }
 };
 
 int main(int argc, char **argv)
