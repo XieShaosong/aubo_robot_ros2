@@ -6,6 +6,13 @@
 |---------------------------|---------------------------------------------------------|
 | Ubuntu 20.04              | [Foxy Fitzroy](https://docs.ros.org/en/foxy/index.html) |
 
+|**Recommend AUBO Teachpendant Version**    |**Recommend AUBO Hardware Version**  |
+|-------------------------------------------|-------------------------------------|
+|V4.5.48                                    |V3.4.38                              |
+
+## Attention
+Due to the update of aubo, the execution efficiency of the robotServiceSetRobotPosData2Canbus(double jointAngle [aubo_robot_namespace: ARM-DOF]) API has decreased. The new version may cause the robotic arm to shake during trajectory execution. It is recommended to use the recommended version to run this project.
+
 ## Getting Started
 
 This project was developed for ROS2 Foxy on Ubuntu 20.04. Other versions of Ubuntu and ROS2 may work, but are not officially supported.
