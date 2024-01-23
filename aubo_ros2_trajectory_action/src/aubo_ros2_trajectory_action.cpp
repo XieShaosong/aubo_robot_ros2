@@ -272,12 +272,14 @@ trajectory_msgs::msg::JointTrajectory JointTrajectoryAction::remapTrajectoryByJo
   std::vector<int> mapping;
 
   mapping.resize(6, 6);
-	for (uint16_t i = 0; i < trajectory.joint_names.size(); i++) {
-		for (int j = 0; j < 6; j++) {
-			if (trajectory.joint_names[i] == joint_names[j])
-				mapping[j] = i;
-		}
-	}
+  for (uint16_t i = 0; i < trajectory.joint_names.size(); i++)
+  {
+    for (int j = 0; j < 6; j++)
+    {
+      if (trajectory.joint_names[i] == joint_names[j])
+        mapping[j] = i;
+    }
+  }
 
   for(int i = 0; i < 6; i++)
     RCLCPP_INFO(this->get_logger(), "order %d", mapping[i]);
